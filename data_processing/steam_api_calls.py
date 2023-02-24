@@ -96,8 +96,12 @@ def game_summary(game_id, play_time):
 
     summary = {
         "game_id": str(game_id),
+        "name": game_name,
         "genres": genre_list,
-        "review_score": review_score  # TODO expand into T/F fields for each possible genre
+        "review_score": review_score,  # TODO expand into T/F fields for each possible genre
+        "completion_time": None,
+        "completion_ratio": None
+
     }
 
     return summary
