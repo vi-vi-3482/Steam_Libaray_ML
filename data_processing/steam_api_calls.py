@@ -47,9 +47,11 @@ def get_game_info(game_id, api=api):
     # pprint.pprint(game_info)
     return game_info
 
-user_library = get_library(user_id)
 
-info = get_game_info(440)
+if __name__ == "__main__":
+    user_library = get_library(user_id)
 
-# pprint.pprint(user_library)
-print("done")
+    info = get_game_info(440)
+
+    # pprint.pprint(user_library)
+    print("done")
