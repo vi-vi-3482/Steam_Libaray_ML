@@ -44,10 +44,10 @@ def get_game_info(game_id, api=api):
     """
     with urllib.request.urlopen(fr"https://store.steampowered.com/api/appdetails?appids={game_id}") as url:
         game_info = json.load(url)
-    pprint.pprint(game_info)
+    # pprint.pprint(game_info)
     return game_info
 
-user_library = get_library(api, user_id)
+user_library = get_library(user_id)
 
 info = get_game_info(440)
 
