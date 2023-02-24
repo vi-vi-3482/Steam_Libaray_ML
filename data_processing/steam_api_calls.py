@@ -2,6 +2,7 @@ import json
 import steam.webapi as steam_api
 import pprint
 import urllib.request
+from howlongtobeatpy import HowLongToBeat
 
 with open(r"apikey.json") as f:
     api_userid = json.load(f)
@@ -62,7 +63,7 @@ def get_review_info(game_id: str) -> dict:
 
     review_info = response["query_summary"]
 
-    pprint.pprint(review_info)
+    # pprint.pprint(review_info)
     return review_info
 
 
@@ -83,7 +84,30 @@ def review_ratio(review_dict):
     return ratio
 
 
-def game_summary(game_id, play_time):
+def game_completion_time(game_name):
+    """
+    Uses howlongtobeatpy as an API to find completion time of a game.
+    :param game_name:
+    :return:
+    """
+    results = list(HowLongToBeat().search(game_name))
+
+    if results is not None and len(results) > 0:
+        best_element = max(results, key=lambda element: element.similarity)
+
+    else:
+        raise Exception("There is no matching How Long To Beat name.")
+
+    try:
+        time_to_finish = best_element.all_styles
+    except:
+        raise Exception(f"The game does not have a play time category. Game URL is {best_element.game_web_link}")
+
+    time_to_finish = time_to_finish * 60  # convert to minutes to match steam library data
+
+    return time_to_finish
+
+def game_summary(game_id, completion_time, play_time):
     info = get_game_info(game_id)
     score = get_review_info(game_id)
 
@@ -99,8 +123,9 @@ def game_summary(game_id, play_time):
         "name": game_name,
         "genres": genre_list,
         "review_score": review_score,  # TODO expand into T/F fields for each possible genre
-        "completion_time": None,
-        "completion_ratio": None
+        "completion_time": completion_time,
+        "play_time": play_time,
+        "completion_ratio": play_time / completion_time
 
     }
 
@@ -108,8 +133,10 @@ def game_summary(game_id, play_time):
 
 
 if __name__ == "__main__":
-    user_library = get_library(user_id)
+    user_library = get_library(user_id)  # TODO iterate over and extrace game id and play time for further functions
     info = get_game_info(440)
     score = get_review_info(440)
+    time_to_finish = game_completion_time("Elden Ring")
 
+    summary = game_summary(440, time_to_finish, 11111)
     print("done")
