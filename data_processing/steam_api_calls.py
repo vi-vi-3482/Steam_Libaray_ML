@@ -35,11 +35,10 @@ def get_library(user_id: str, api=api) -> list:
     return user_library
 
 
-def get_game_info(game_id, api=api):
+def get_game_info(game_id):
     """
 
     :param game_id:
-    :param api:
     :return:
     """
     with urllib.request.urlopen(fr"https://store.steampowered.com/api/appdetails?appids={game_id}") as url:
@@ -48,10 +47,30 @@ def get_game_info(game_id, api=api):
     return game_info
 
 
+def get_review_info(game_id):
+
+    with urllib.request.urlopen(fr"https://store.steampowered.com/appreviews/{game_id}?json=1&language=all") as url:
+        response = json.load(url)
+
+    review_info = response["query_summary"]
+
+
+    pprint.pprint(review_info)
+    return review_info
+
+
+def review_ratio(review_dict):
+    positive = review_dict["total_positive"]
+    negative = review_dict["total_negative"]
+
+    ratio = positive / (positive + negative)
+
+    return ratio
+
+
 if __name__ == "__main__":
     user_library = get_library(user_id)
-
     info = get_game_info(440)
+    score = get_review_info(440)
 
-    # pprint.pprint(user_library)
     print("done")
