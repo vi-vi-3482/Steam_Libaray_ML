@@ -107,14 +107,15 @@ def game_completion_time(game_name):
 
     return time_to_finish
 
-def game_summary(game_id, completion_time, play_time):
+
+def game_summary(game_id: str, completion_time: float, play_time: float):
     info = get_game_info(game_id)
     score = get_review_info(game_id)
 
     game_name = info[str(game_id)]["data"]["name"]
 
-    genres_dict = info[str(game_id)]["data"]["genres"]
-    genre_list = [v["description"] for k, v in genres_dict.items()]
+    genres = info[str(game_id)]["data"]["genres"]
+    genre_list = [v["description"] for v in genres]
 
     review_score = review_ratio(score)
 
