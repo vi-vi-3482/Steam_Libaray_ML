@@ -1,4 +1,7 @@
 import json
+import traceback
+
+import pandas as pd
 import steam.webapi as steam_api
 import pprint
 import urllib.request
@@ -67,7 +70,7 @@ def get_review_info(game_id: str) -> dict:
     return review_info
 
 
-def review_ratio(review_dict):
+def review_ratio(review_dict, game_name):
     """
     Calculates ratio of positive reviews to negative reviews from a game, returns a float between 0 and 1.
 
@@ -79,7 +82,11 @@ def review_ratio(review_dict):
     positive = review_dict["total_positive"]
     negative = review_dict["total_negative"]
 
-    ratio = positive / (positive + negative)
+    try:
+        ratio = positive / (positive + negative)
+    except ZeroDivisionError:
+        print(f"{game_name} does not have reviews")
+        ratio = None
 
     return ratio
 
@@ -96,7 +103,8 @@ def game_completion_time(game_name):
         best_element = max(results, key=lambda element: element.similarity)
 
     else:
-        raise Exception("There is no matching How Long To Beat name.")
+        raise Exception(f"There is no matching How Long To Beat name for {game_name}.")
+
 
     try:
         time_to_finish = best_element.all_styles
@@ -113,11 +121,19 @@ def game_summary(game_id: str, completion_time: float, play_time: float):
     score = get_review_info(game_id)
 
     game_name = info[str(game_id)]["data"]["name"]
+    print(game_name)
 
     genres = info[str(game_id)]["data"]["genres"]
     genre_list = [v["description"] for v in genres]
 
-    review_score = review_ratio(score)
+    review_score = review_ratio(score, game_name)
+
+    try:
+        completion_ratio = play_time / completion_time
+    except TypeError:
+        completion_ratio = None
+    except ZeroDivisionError:
+        completion_ratio = None
 
     summary = {
         "game_id": str(game_id),
@@ -126,18 +142,38 @@ def game_summary(game_id: str, completion_time: float, play_time: float):
         "review_score": review_score,  # TODO expand into T/F fields for each possible genre
         "completion_time": completion_time,
         "play_time": play_time,
-        "completion_ratio": play_time / completion_time
-
+        "completion_ratio": completion_ratio
     }
 
     return summary
 
 
-if __name__ == "__main__":
-    user_library = get_library(user_id)  # TODO iterate over and extrace game id and play time for further functions
-    info = get_game_info(440)
-    score = get_review_info(440)
-    time_to_finish = game_completion_time("Elden Ring")
+def main():
+    user_library = get_library(user_id)
 
-    summary = game_summary(440, time_to_finish, 11111)
+    all_data = []
+    for index, game in enumerate(user_library):
+        try:
+            game_name = game["name"]
+            game_id = str(game["appid"])
+            playtime = game["playtime_forever"]
+
+            try:
+                time_to_finish = game_completion_time(game_name)
+            except:
+                time_to_finish = None
+
+            summary = game_summary(game_id, time_to_finish, playtime)
+
+            all_data.append(summary)
+        except:
+            traceback.print_exc()
+
+        df = pd.DataFrame(all_data)
+        df.to_csv("all_data.csv")
+
+    return all_data
+
+if __name__ == "__main__":
+    all_data = main()
     print("done")
