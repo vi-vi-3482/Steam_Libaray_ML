@@ -175,6 +175,11 @@ def main():
         df = pd.DataFrame(all_data)
         df["genres"] = df["genres"].apply(lambda x: ast.literal_eval(x))
 
+        mlb = MultiLabelBinarizer()
+        genres_df = pd.DataFrame(mlb.fit_transform(df["genres"]), columns=mlb.classes_).astype(bool)
+
+        df = df.join(genres_df, how="left")
+
         df.to_csv("all_data.csv")
 
     return all_data
