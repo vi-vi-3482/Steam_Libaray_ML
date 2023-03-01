@@ -1,6 +1,8 @@
 import json
+import time
 import traceback
-
+from sklearn.preprocessing import MultiLabelBinarizer
+import ast
 import pandas as pd
 import steam.webapi as steam_api
 import pprint
@@ -105,7 +107,6 @@ def game_completion_time(game_name):
     else:
         raise Exception(f"There is no matching How Long To Beat name for {game_name}.")
 
-
     try:
         time_to_finish = best_element.all_styles
     except:
@@ -131,9 +132,9 @@ def game_summary(game_id: str, completion_time: float, play_time: float):
     try:
         completion_ratio = play_time / completion_time
     except TypeError:
-        completion_ratio = None
+        completion_ratio = "TypeError"
     except ZeroDivisionError:
-        completion_ratio = None
+        completion_ratio = "ZeroDivisionError"
 
     summary = {
         "game_id": str(game_id),
@@ -153,6 +154,7 @@ def main():
 
     all_data = []
     for index, game in enumerate(user_library):
+
         try:
             game_name = game["name"]
             game_id = str(game["appid"])
@@ -168,11 +170,15 @@ def main():
             all_data.append(summary)
         except:
             traceback.print_exc()
+            time.sleep(10)
 
         df = pd.DataFrame(all_data)
+        df["genres"] = df["genres"].apply(lambda x: ast.literal_eval(x))
+
         df.to_csv("all_data.csv")
 
     return all_data
+
 
 if __name__ == "__main__":
     all_data = main()
